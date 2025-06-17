@@ -1,124 +1,221 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Slot Machine - Animated</title>
-  <style>
-    body {
-      background: #222;
-      color: white;
-      font-family: Arial, sans-serif;
-      text-align: center;
-      margin: 0;
-      padding: 20px;
-    }
-    .slot {
-      font-size: 80px;
-      display: inline-block;
-      margin: 20px;
-      width: 100px;
-      height: 100px;
-      background: #333;
-      border-radius: 15px;
-      line-height: 100px;
-      border: 3px solid #555;
-      transition: transform 0.3s ease;
-    }
-    .spinning {
-      animation: spin 0.5s infinite;
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    button {
-      font-size: 24px;
-      padding: 10px 30px;
-      margin-top: 20px;
-      border-radius: 10px;
-      border: none;
-      background: gold;
-      color: black;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    #result {
-      margin-top: 20px;
-      font-size: 32px;
-    }
-    #money {
-      font-size: 28px;
-      margin-top: 10px;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Fun Slot Machine with Rat!</title>
+<style>
+  body {
+    background: linear-gradient(135deg, #222, #444);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: white;
+    text-align: center;
+    padding: 20px;
+    user-select: none;
+  }
+  h1 {
+    margin-bottom: 0;
+  }
+  #balance {
+    font-size: 1.5em;
+    margin: 10px 0 30px;
+  }
+  #slot-machine {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 30px;
+  }
+  .reel {
+    width: 100px;
+    height: 100px;
+    background: #111;
+    border-radius: 15px;
+    box-shadow: inset 0 0 10px #0af;
+    font-size: 70px;
+    line-height: 100px;
+    user-select: none;
+    transition: background 0.3s;
+  }
+  .reel.winning {
+    background: gold;
+    color: #222;
+    box-shadow: 0 0 15px 5px gold;
+  }
+  #spin-btn {
+    padding: 15px 30px;
+    font-size: 1.3em;
+    background: #0af;
+    border: none;
+    border-radius: 12px;
+    color: white;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  #spin-btn:disabled {
+    background: #555;
+    cursor: not-allowed;
+  }
+  #message {
+    margin-top: 25px;
+    font-size: 1.3em;
+    min-height: 1.5em;
+  }
+  /* Rat image in bottom-right */
+  #rat-corner {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    width: 100px;
+    user-select: none;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+    opacity: 0.8;
+    z-index: 9999;
+  }
+  #rat-corner:hover {
+    transform: rotate(15deg) scale(1.1);
+    opacity: 1;
+  }
+  /* Wiggle animation for rat */
+  @keyframes wiggle {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(10deg); }
+    50% { transform: rotate(-10deg); }
+    75% { transform: rotate(10deg); }
+  }
+  #rat-corner.wiggle {
+    animation: wiggle 0.6s ease infinite;
+  }
+</style>
 </head>
 <body>
 
-  <h1>🎰 Slot Machine 🎰</h1>
+<h1>🎰 Fun Slot Machine 🎰</h1>
+<div id="balance">Balance: $100</div>
 
-  <div id="money">Money: $100</div>
+<div id="slot-machine">
+  <div class="reel" id="reel1">🍒</div>
+  <div class="reel" id="reel2">🍋</div>
+  <div class="reel" id="reel3">🍊</div>
+</div>
 
-  <div id="slots">
-    <div class="slot">❓</div>
-    <div class="slot">❓</div>
-    <div class="slot">❓</div>
-  </div>
+<button id="spin-btn">Spin 🎲 ($10)</button>
 
-  <button id="spinButton">SPIN ($10)</button>
+<div id="message"></div>
 
-  <div id="result"></div>
+<!-- Rat image -->
+<img src="https://i.imgur.com/kYqvR8U.png" alt="Cute Rat" id="rat-corner" title="Good luck!" />
 
-  <script>
-    const symbols = ["🍒", "🍋", "🔔", "💎", "🍀", "7️⃣"];
-    const slots = document.querySelectorAll('.slot');
-    const result = document.getElementById('result');
-    const spinButton = document.getElementById('spinButton');
-    const moneyDisplay = document.getElementById('money');
-    let money = 100;
-    const spinCost = 10;
+<script>
+(() => {
+  const balanceDisplay = document.getElementById('balance');
+  const spinBtn = document.getElementById('spin-btn');
+  const message = document.getElementById('message');
+  const rat = document.getElementById('rat-corner');
 
-    function updateMoney() {
-      moneyDisplay.textContent = `Money: $${money}`;
-      spinButton.disabled = (money < spinCost);
+  let balance = 100;
+  const spinCost = 10;
+
+  // Slot symbols and their payout multipliers
+  const symbols = [
+    {emoji: '🍒', payout: 2},
+    {emoji: '🍋', payout: 3},
+    {emoji: '🍊', payout: 4},
+    {emoji: '🍉', payout: 5},
+    {emoji: '⭐', payout: 8},
+    {emoji: '💎', payout: 10},
+  ];
+
+  const reels = [
+    document.getElementById('reel1'),
+    document.getElementById('reel2'),
+    document.getElementById('reel3'),
+  ];
+
+  // Utility: random symbol from symbols
+  function randomSymbol() {
+    return symbols[Math.floor(Math.random() * symbols.length)];
+  }
+
+  // Animate reels spinning
+  async function spinReels() {
+    spinBtn.disabled = true;
+    message.textContent = '';
+    let spinRounds = 15;
+
+    for(let i = 0; i < spinRounds; i++) {
+      reels.forEach(reel => {
+        const sym = randomSymbol();
+        reel.textContent = sym.emoji;
+        reel.dataset.symbol = sym.emoji;
+      });
+      await new Promise(r => setTimeout(r, 80 + i * 10));
     }
 
-    function spin() {
-      if (money < spinCost) return;
-      money -= spinCost;
-      updateMoney();
-      result.textContent = "";
+    // Final spin result
+    const results = reels.map(r => r.dataset.symbol);
 
-      slots.forEach(slot => slot.classList.add('spinning'));
-
-      setTimeout(() => {
-        let outcome = [];
-        for (let i = 0; i < 3; i++) {
-          const randIndex = Math.floor(Math.random() * symbols.length);
-          slots[i].textContent = symbols[randIndex];
-          outcome.push(symbols[randIndex]);
-        }
-        slots.forEach(slot => slot.classList.remove('spinning'));
-        checkWin(outcome);
-      }, 2000);
+    // Check wins: all 3 match for payout
+    let win = false;
+    if(results[0] === results[1] && results[1] === results[2]) {
+      win = true;
+      let sym = symbols.find(s => s.emoji === results[0]);
+      payout(win, sym.payout);
+    } else {
+      payout(win);
     }
 
-    function checkWin(outcome) {
-      if (outcome[0] === outcome[1] && outcome[1] === outcome[2]) {
-        result.textContent = "🎉 JACKPOT! You win $100!";
-        money += 100;
-      } else if (outcome[0] === outcome[1] || outcome[1] === outcome[2] || outcome[0] === outcome[2]) {
-        result.textContent = "😊 Small Win! You win $20!";
-        money += 20;
-      } else {
-        result.textContent = "😞 No luck!";
-      }
-      updateMoney();
-    }
+    spinBtn.disabled = false;
+  }
 
-    spinButton.addEventListener('click', spin);
-    updateMoney();
-  </script>
+  // Handle payout and messages
+  function payout(won, multiplier=0) {
+    if(won) {
+      const winAmount = spinCost * multiplier;
+      balance += winAmount;
+      message.textContent = `You won $${winAmount}! 🎉`;
+      highlightWinningReels(true);
+      rat.classList.add('wiggle');
+      setTimeout(() => rat.classList.remove('wiggle'), 2000);
+    } else {
+      balance -= spinCost;
+      message.textContent = `You lost $${spinCost}. Try again! 🍀`;
+      highlightWinningReels(false);
+    }
+    updateBalance();
+
+    if(balance < spinCost) {
+      spinBtn.disabled = true;
+      message.textContent += ' Game Over! Reload to play again.';
+    }
+  }
+
+  // Update balance display
+  function updateBalance() {
+    balanceDisplay.textContent = `Balance: $${balance}`;
+  }
+
+  // Highlight or reset reel backgrounds on win/loss
+  function highlightWinningReels(win) {
+    if(win) {
+      reels.forEach(r => r.classList.add('winning'));
+    } else {
+      reels.forEach(r => r.classList.remove('winning'));
+    }
+  }
+
+  // Bind spin button click
+  spinBtn.addEventListener('click', () => {
+    if(balance >= spinCost) {
+      spinReels();
+    }
+  });
+
+  updateBalance();
+
+})();
+</script>
 
 </body>
 </html>
