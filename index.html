@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Simple Slot Machine</title>
+  <title>Slot Machine - Animated</title>
   <style>
     body {
       background: #222;
@@ -23,6 +23,14 @@
       border-radius: 15px;
       line-height: 100px;
       border: 3px solid #555;
+      transition: transform 0.3s ease;
+    }
+    .spinning {
+      animation: spin 0.5s infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
     button {
       font-size: 24px;
@@ -39,11 +47,17 @@
       margin-top: 20px;
       font-size: 32px;
     }
+    #money {
+      font-size: 28px;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
 
   <h1>🎰 Slot Machine 🎰</h1>
+
+  <div id="money">Money: $100</div>
 
   <div id="slots">
     <div class="slot">❓</div>
@@ -51,7 +65,7 @@
     <div class="slot">❓</div>
   </div>
 
-  <button id="spinButton">SPIN</button>
+  <button id="spinButton">SPIN ($10)</button>
 
   <div id="result"></div>
 
@@ -60,28 +74,50 @@
     const slots = document.querySelectorAll('.slot');
     const result = document.getElementById('result');
     const spinButton = document.getElementById('spinButton');
+    const moneyDisplay = document.getElementById('money');
+    let money = 100;
+    const spinCost = 10;
+
+    function updateMoney() {
+      moneyDisplay.textContent = `Money: $${money}`;
+      spinButton.disabled = (money < spinCost);
+    }
 
     function spin() {
-      let outcome = [];
-      for (let i = 0; i < 3; i++) {
-        const randIndex = Math.floor(Math.random() * symbols.length);
-        slots[i].textContent = symbols[randIndex];
-        outcome.push(symbols[randIndex]);
-      }
-      checkWin(outcome);
+      if (money < spinCost) return;
+      money -= spinCost;
+      updateMoney();
+      result.textContent = "";
+
+      slots.forEach(slot => slot.classList.add('spinning'));
+
+      setTimeout(() => {
+        let outcome = [];
+        for (let i = 0; i < 3; i++) {
+          const randIndex = Math.floor(Math.random() * symbols.length);
+          slots[i].textContent = symbols[randIndex];
+          outcome.push(symbols[randIndex]);
+        }
+        slots.forEach(slot => slot.classList.remove('spinning'));
+        checkWin(outcome);
+      }, 2000);
     }
 
     function checkWin(outcome) {
       if (outcome[0] === outcome[1] && outcome[1] === outcome[2]) {
-        result.textContent = "🎉 JACKPOT! 🎉";
+        result.textContent = "🎉 JACKPOT! You win $100!";
+        money += 100;
       } else if (outcome[0] === outcome[1] || outcome[1] === outcome[2] || outcome[0] === outcome[2]) {
-        result.textContent = "😊 Small Win!";
+        result.textContent = "😊 Small Win! You win $20!";
+        money += 20;
       } else {
-        result.textContent = "😞 Try Again";
+        result.textContent = "😞 No luck!";
       }
+      updateMoney();
     }
 
     spinButton.addEventListener('click', spin);
+    updateMoney();
   </script>
 
 </body>
