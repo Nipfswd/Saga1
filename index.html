@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Simple Slot Machine</title>
+  <style>
+    body {
+      background: #222;
+      color: white;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 20px;
+    }
+    .slot {
+      font-size: 80px;
+      display: inline-block;
+      margin: 20px;
+      width: 100px;
+      height: 100px;
+      background: #333;
+      border-radius: 15px;
+      line-height: 100px;
+      border: 3px solid #555;
+    }
+    button {
+      font-size: 24px;
+      padding: 10px 30px;
+      margin-top: 20px;
+      border-radius: 10px;
+      border: none;
+      background: gold;
+      color: black;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    #result {
+      margin-top: 20px;
+      font-size: 32px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🎰 Slot Machine 🎰</h1>
+
+  <div id="slots">
+    <div class="slot">❓</div>
+    <div class="slot">❓</div>
+    <div class="slot">❓</div>
+  </div>
+
+  <button id="spinButton">SPIN</button>
+
+  <div id="result"></div>
+
+  <script>
+    const symbols = ["🍒", "🍋", "🔔", "💎", "🍀", "7️⃣"];
+    const slots = document.querySelectorAll('.slot');
+    const result = document.getElementById('result');
+    const spinButton = document.getElementById('spinButton');
+
+    function spin() {
+      let outcome = [];
+      for (let i = 0; i < 3; i++) {
+        const randIndex = Math.floor(Math.random() * symbols.length);
+        slots[i].textContent = symbols[randIndex];
+        outcome.push(symbols[randIndex]);
+      }
+      checkWin(outcome);
+    }
+
+    function checkWin(outcome) {
+      if (outcome[0] === outcome[1] && outcome[1] === outcome[2]) {
+        result.textContent = "🎉 JACKPOT! 🎉";
+      } else if (outcome[0] === outcome[1] || outcome[1] === outcome[2] || outcome[0] === outcome[2]) {
+        result.textContent = "😊 Small Win!";
+      } else {
+        result.textContent = "😞 Try Again";
+      }
+    }
+
+    spinButton.addEventListener('click', spin);
+  </script>
+
+</body>
+</html>
